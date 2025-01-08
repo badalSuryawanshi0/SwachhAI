@@ -1,4 +1,3 @@
-//@ts-nocheck
 "use client";
 import { Button } from "@/components/ui/button";
 import { GoogleGenerativeAI } from "@google/generative-ai";
@@ -72,7 +71,9 @@ export default function ReportPage() {
     libraries: libraries,
   });
   const onLoad = useCallback(() => {
+    //@ts-ignore
     (ref: google.maps.places.SearchBox) => {
+      //@ts-ignore
       setSearchBox(ref);
     };
   }, []);
@@ -171,7 +172,7 @@ export default function ReportPage() {
           setVerificationStatus("failure");
         }
       } catch (error) {
-        console.error("Failed to parse JSON responses", sanitizedText);
+        console.error("Failed to parse JSON responses", error, sanitizedText);
         setVerificationStatus("failure");
       }
     } catch (error) {
@@ -197,23 +198,24 @@ export default function ReportPage() {
         user.id,
         newReport.location,
         newReport.type,
-        newReport.amount,
+        newReport.amount.toString(),
         preview || undefined,
         verificationResult ? JSON.stringify(verificationResult) : undefined
-      )) as any;
+      )) 
       console.log(report);
       //this object is  for recent report
       const formatted_Report = {
-        id: report.id,
-        location: report.location,
-        wasteType: report.wasteType,
-        amount: report.amount,
-        createdAt: report.createdAt.toISOString().split("T")[0],
+        id: report?.id,
+        location: report?.location,
+        wasteType: report?.wasteType,
+        amount: report?.amount,
+        createdAt: report?.createdAt.toISOString().split("T")[0],
       };
       console.log(formatted_Report);
       //appending recently got report with available report
+      //@ts-ignore
       setReports([formatted_Report, ...reports]);
-      setNewReport({ location: "", type: "", amount: "" });
+      setNewReport({ location: "", type: "", amount: 0 });
       setFile(null);
       setPreview(null);
       setVerificationStatus("idle");
@@ -241,11 +243,11 @@ export default function ReportPage() {
         console.log("User set :", user);
         //get recent report from db
         const recentReports = await getRecentReports();
-        const formattedReport = recentReports.map((report) => ({
+        const formattedReport = recentReports?.map((report) => ({
           ...report,
           createdAt: report.createdAt.toISOString().split("T")[0],
         }));
-        setReports(formattedReport);
+        setReports(formattedReport!);
       } else {
         router.push("/");
       }

@@ -1,14 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import {
-  ArrowRight,
-  Leaf,
-  Recycle,
-  Users,
-  Coins,
-  MapPin,
-  ChevronRight,
-} from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Poppins } from "next/font/google";
 import WasteSegregationAnimation from "@/components/Animtedlogo";
@@ -47,7 +39,7 @@ export default function Home() {
             <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
         ) : (
-          <Link href="/report">
+          <Link href='/report'>
             <Button className="bg-green-600 hover:bg-green-700 text-white text-lg py-6 px-10 rounded-full font-medium transition-all duration-300 ease-in-out transform hover:scale-105">
               Report Waste
               <ArrowRight className="ml-2 h-5 w-5" />

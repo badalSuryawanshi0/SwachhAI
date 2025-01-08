@@ -21,6 +21,7 @@ import saveCollectionWaste, {
   saveReward,
   updateTaskStatus,
 } from "@/utils/db/actions";
+import Image from "next/image";
 
 const geminiApiKey = process.env.GEMINI_API_KEY;
 
@@ -88,7 +89,7 @@ export default function CollectPage() {
     confidence: number;
   } | null>(null);
 
-  const [reward, setReward] = useState<number | null>(null);
+  /*const [reward, setReward] = useState<number | null>(null);*/
 
   const handleStatusChange = async (
     taskId: number,
@@ -184,7 +185,7 @@ export default function CollectPage() {
           const earnedRewards = Math.floor(Math.random() * 50) + 10;
           await saveReward(user.id, earnedRewards);
           await saveCollectionWaste(selectedTask.id, user.id);
-          setReward(earnedRewards);
+          // setReward(earnedRewards);
           toast.success(
             `Verification successful! You earned ${earnedRewards} tokens!`,
             {
@@ -198,7 +199,7 @@ export default function CollectPage() {
           );
         }
       } catch (error) {
-        console.error("Failed to parse JSON response", text);
+        console.error("Failed to parse JSON response", error, text);
         setVerificationStatus("failure");
       }
     } catch (error) {
@@ -393,7 +394,7 @@ export default function CollectPage() {
                 </div>
               </div>
               {verificationImage && (
-                <img
+                <Image
                   src={verificationImage}
                   alt="Verification"
                   className="mb-4 rounded-md w-full"

@@ -1,6 +1,5 @@
-//@ts-nocheck
 "use client";
-import { useState, useEffect, Profiler } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Web3Auth } from "@web3auth/modal";
@@ -14,13 +13,9 @@ import {
   Search,
   Leaf,
   Bell,
-  VenetianMaskIcon,
   User,
   ChevronDown,
   LogIn,
-  LogOut,
-  Ghost,
-  LogInIcon,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -71,7 +66,6 @@ export default function Header({ onMenuClick, totalEarning }: HeaderProps) {
   const [loggedIn, setLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
   const [userInfo, setUserInfo] = useState<any>(null);
-  const pathname = usePathname();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [balance, setBalance] = useState(0);
   const isMobile = useMediaQuery("(max-width: 768px)"); //on this point we want to render mobile view
@@ -108,7 +102,8 @@ export default function Header({ onMenuClick, totalEarning }: HeaderProps) {
         const user = await getUserByEmail(userInfo.email);
         if (user) {
           const unreadNotifications = await getUnreadNotification(user.id);
-          setNotifications(unreadNotifications);
+          //@ts-ignore
+          setNotifications(unreadNotifications); 
         }
       }
     };
@@ -154,12 +149,12 @@ export default function Header({ onMenuClick, totalEarning }: HeaderProps) {
       const user = await web3auth.getUserInfo();
       setUserInfo(user);
       if (user) {
-        localStorage.setItem("UserEmail", user);
+        localStorage.setItem("UserEmail", JSON.stringify(user));
 
         try {
-          const user = await getUserByEmail(user);
-          if (!user) {
-            await createUser(user.email, user.name || "Anonymous User");
+          const user1 :any = await getUserByEmail(user?.email!);
+          if (!user1) {
+            await createUser(user1?.email!, user1?.name! || "Anonymous User");
           }
           window.location.reload();
         } catch (error) {

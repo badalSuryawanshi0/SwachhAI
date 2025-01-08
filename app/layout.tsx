@@ -22,17 +22,17 @@ export default function RootLayout({
         try {
           const user = await getUserByEmail(userEmail);
           if (user) {
-            const availableRewards = (await getAvailableRewards(
+            const availableRewards :any = (await getAvailableRewards(
               user.id
-            )) as any;
+            )) 
             setTotalEarnings(availableRewards);
           }
         } catch (error) {
           console.error("Error fetching total earning", error);
-          fetchTotalEarnings();
         }
       }
     };
+    fetchTotalEarnings();
   }, []);
   return (
     <html lang="en">
