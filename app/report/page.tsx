@@ -1,28 +1,20 @@
 //@ts-nocheck
 "use client";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import {
-  Upload,
-  CheckCircle,
-  Loader,
-  MapPin,
-  Trash2,
-  Scale,
-} from "lucide-react";
-import React, { useState, useCallback, useEffect } from "react";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { CheckCircle, Loader, MapPin, Upload } from "lucide-react";
+import React, { useCallback, useEffect, useState } from "react";
 
 import {
   createReport,
+  createUser,
   getRecentReports,
   getUserByEmail,
-  createUser,
 } from "@/utils/db/actions";
 import {
+  Libraries,
   StandaloneSearchBox,
   useJsApiLoader,
-  Libraries,
 } from "@react-google-maps/api";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
@@ -50,7 +42,7 @@ export default function ReportPage() {
   //To store newly created report
   const [newReport, setNewReport] = useState({
     location: "",
-    amount: "",
+    amount: 0,
     type: "",
   });
   //to upload the file to gemini
@@ -85,7 +77,7 @@ export default function ReportPage() {
     };
   }, []);
   // select location from SearchBox
-  const onPlaceChanged = () => {
+  const onPlacesChanged = useCallback(() => {
     if (searchBox) {
       const places = searchBox.getPlaces();
       if (places && places.length > 0) {
@@ -96,15 +88,17 @@ export default function ReportPage() {
         }));
       }
     }
-  };
+  }, [searchBox]);
+
   //gemini api part
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
+    console.log("Hui Hui");
     const { name, value } = e.target;
     setNewReport({ ...newReport, [name]: value });
   };
-  //for uploading image and preview 
+  //for uploading image and preview
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
@@ -112,6 +106,7 @@ export default function ReportPage() {
       const reader = new FileReader();
       reader.onload = (e) => {
         setPreview(e.target?.result as string);
+        reader.readAsDataURL(selectedFile);
       };
     }
   };
@@ -187,21 +182,26 @@ export default function ReportPage() {
   //Submit button
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (verificationStatus !== "success" || !user) {
-      toast.error("Please verify the waste before submitting or login");
+    if (verificationStatus !== "success") {
+      toast.error("Please verify the waste before submitting");
+      return;
+    }
+    if (!user || !user.id) {
+      toast.error("User not authenticated. Please log in");
       return;
     }
     setIsSubmitting(true);
     try {
       //when we will create new report action will return destructed report here
-      const report = await createReport(
+      const report = (await createReport(
         user.id,
         newReport.location,
         newReport.type,
         newReport.amount,
         preview || undefined,
         verificationResult ? JSON.stringify(verificationResult) : undefined
-      ) as any;
+      )) as any;
+      console.log(report);
       //this object is  for recent report
       const formatted_Report = {
         id: report.id,
@@ -210,6 +210,7 @@ export default function ReportPage() {
         amount: report.amount,
         createdAt: report.createdAt.toISOString().split("T")[0],
       };
+      console.log(formatted_Report);
       //appending recently got report with available report
       setReports([formatted_Report, ...reports]);
       setNewReport({ location: "", type: "", amount: "" });
@@ -221,7 +222,7 @@ export default function ReportPage() {
         `Report Submitted succesfully! You've earned points for reporting waste`
       );
     } catch (error) {
-      console.error("Error submitting report");
+      console.error("Error submitting report", error);
       toast.error("Failed to submit report. please try again");
     } finally {
       setIsSubmitting(false);
@@ -237,8 +238,10 @@ export default function ReportPage() {
           user = await createUser(email, "Anonymous User");
         }
         setUser(user);
+        console.log("User set :", user);
+        //get recent report from db
         const recentReports = await getRecentReports();
-        const formattedReport = recentReports.map(report => ({
+        const formattedReport = recentReports.map((report) => ({
           ...report,
           createdAt: report.createdAt.toISOString().split("T")[0],
         }));
@@ -349,14 +352,20 @@ export default function ReportPage() {
             {isLoaded ? (
               <StandaloneSearchBox
                 onLoad={onLoad}
-                onPlacesChanged={onPlaceChanged}
+                onPlacesChanged={onPlacesChanged}
               >
                 <input
                   type="text"
                   id="location"
                   name="location"
                   value={newReport.location}
-                  onChange={handleInputChange}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    // Only update if user is typing, not when place is selected
+                    if (!searchBox?.getPlaces()?.length) {
+                      setNewReport((prev) => ({ ...prev, location: value }));
+                    }
+                  }}
                   required
                   className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-300"
                   placeholder="Enter waste location"

@@ -22,7 +22,7 @@ export const Reports = pgTable("reports", {
     .notNull(),
   location: text("location").notNull(),
   wasteType: varchar("waste_type", { length: 255 }).notNull(),
-  amount: varchar("amount", { length: 255 }).notNull(),
+  amount: varchar("amount").notNull(),
   imageUrl: text("image_url"),
   verificationResult: jsonb("verification_result"),
   status: varchar("status", { length: 255 }).notNull().default("pending"),

@@ -175,8 +175,11 @@ export async function createReport(
       `You've earned ${pointsEarned} for reportng the watse!`,
       "Reward"
     );
+    return report;
   } catch (error) {
     console.log("Error creating Report", error);
+
+    return null;
   }
 }
 export async function getRecentReports(limit: number = 5) {

@@ -36,6 +36,7 @@ import {
   getUserByEmail,
   markNotificationAsRead,
 } from "@/utils/db/actions";
+import SwachhBharatSpinner from "./Loader";
 const clientId =
   "BPi5PB_UiIZ-cPz1GtV5i1I2iOSOHuimiXBI0e-Oe_u6X3oVAbCiAZOTEBtTXw4tsluTITPqA8zMsfxIKMjiqNQ"; // get from https://dashboard.web3auth.io
 
@@ -43,8 +44,6 @@ const chainConfig = {
   chainNamespace: CHAIN_NAMESPACES.EIP155,
   chainId: "0xaa36a7",
   rpcTarget: "https://rpc.ankr.com/eth_sepolia",
-  // Avoid using public rpcTarget in production.
-  // Use services like Infura, Quicknode etc
   displayName: "Ethereum Sepolia Testnet",
   blockExplorerUrl: "https://sepolia.etherscan.io",
   ticker: "ETH",
@@ -156,9 +155,16 @@ export default function Header({ onMenuClick, totalEarning }: HeaderProps) {
       setUserInfo(user);
       if (user) {
         localStorage.setItem("UserEmail", user);
+
         try {
-          await createUser(user.email, user.name || "Anonymous User");
-        } catch (error) {}
+          const user = await getUserByEmail(user);
+          if (!user) {
+            await createUser(user.email, user.name || "Anonymous User");
+          }
+          window.location.reload();
+        } catch (error) {
+          //add error
+        }
       }
     } catch (error) {
       console.error("Error creating  user", error);
@@ -198,7 +204,7 @@ export default function Header({ onMenuClick, totalEarning }: HeaderProps) {
     await markNotificationAsRead(notificationId);
   };
   if (loading) {
-    return <div>Web3Auth is loading</div>; //Add Loading Spinner
+    return <SwachhBharatSpinner />; //Add Loading Spinner
   }
   return (
     <header className="bg-white border-b-2 border-gray-200 sticky top-0 z-50">
@@ -299,9 +305,7 @@ export default function Header({ onMenuClick, totalEarning }: HeaderProps) {
                 <DropdownMenuItem onClick={getUserInfo}>
                   {userInfo ? userInfo.name : "Profile"}
                 </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Link href="/setting">Profile</Link>
-                </DropdownMenuItem>
+
                 <DropdownMenuItem onClick={logout}>Sign Out</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
